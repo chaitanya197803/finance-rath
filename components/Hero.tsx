@@ -17,10 +17,10 @@ import {
 
 export const Hero: React.FC = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 pt-8 pb-16 lg:pt-14 lg:pb-24 border-b border-slate-200">
+    <section className="relative overflow-hidden bg-linear-to-b from-slate-50 via-white to-slate-50 pt-8 pb-16 lg:pt-14 lg:pb-24 border-b border-slate-200">
       {/* Decorative background grid and lighting glow */}
-      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-amber-100/50 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none" />
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-175 h-100 bg-amber-100/50 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -98,7 +98,7 @@ export const Hero: React.FC = () => {
           <div className="lg:col-span-5">
             <div className="relative mx-auto max-w-md lg:max-w-none">
               {/* Decorative Card Outer Glow */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-[#7a1c1c] rounded-2xl blur-md opacity-20" />
+              <div className="absolute -inset-1 bg-linear-to-r from-amber-400 to-[#7a1c1c] rounded-2xl blur-md opacity-20" />
 
               <div className="relative bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
                 {/* Dashboard Card Header */}

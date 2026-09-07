@@ -30,8 +30,8 @@ export const LoanLandingTemplate: React.FC<LandingPageProps> = ({ loan }) => {
 
       <main className="flex-1">
         {/* Landing Hero */}
-        <section className="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white py-14 sm:py-20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/10 blur-[120px] rounded-full pointer-events-none" />
+        <section className="bg-linear-to-b from-slate-900 via-slate-900 to-slate-950 text-white py-14 sm:py-20 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-125 h-125 bg-amber-500/10 blur-[120px] rounded-full pointer-events-none" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div className="max-w-3xl space-y-6">
