@@ -295,10 +295,17 @@ export default function AdminLeadsPage() {
               <div className="flex items-center gap-2 text-xs font-bold text-[#7a1c1c] uppercase tracking-wider">
                 <Users className="w-4 h-4" />
                 <span>Finance Rath Operations</span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold text-[11px] capitalize">
-                  <Database className="w-3 h-3 text-emerald-600" />
-                  <span>Supabase Database Connected</span>
-                </span>
+                {dataSource === "supabase" ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold text-[11px]">
+                    <Database className="w-3 h-3 text-emerald-600" />
+                    <span>Connected: Supabase Database (Live)</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-semibold text-[11px]">
+                    <Database className="w-3 h-3 text-amber-600" />
+                    <span>Local Storage Mode</span>
+                  </span>
+                )}
               </div>
               <h1 className="text-2xl font-black text-slate-900 mt-1">
                 Supabase Enquiries &amp; CRUD Dashboard

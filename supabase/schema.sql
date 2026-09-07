@@ -1,4 +1,4 @@
--- Finance Rath Supabase Database Schema for Leads Management
+-- Finance Rath Supabase Database Schema for Leads Management (Idempotent SQL)
 
 CREATE TABLE IF NOT EXISTS public.leads (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,25 +22,17 @@ CREATE TABLE IF NOT EXISTS public.leads (
   last_follow_up TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable Row Level Security (RLS)
+-- Enable RLS (Row Level Security)
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 
--- Allow anonymous inserts for website lead forms
-CREATE POLICY "Allow public inserts on leads" 
-  ON public.leads 
-  FOR INSERT 
-  TO public 
-  WITH CHECK (true);
+-- Drop policy if it already exists to prevent Postgres error 42710
+DROP POLICY IF EXISTS "Allow public access on leads" ON public.leads;
 
--- Allow public/authenticated read and manage operations
-CREATE POLICY "Allow full access on leads for management" 
-  ON public.leads 
-  FOR ALL 
-  TO public 
-  USING (true)
-  WITH CHECK (true);
+-- Create policy for full public access (inserts, reads, updates, deletes)
+CREATE POLICY "Allow public access on leads" 
+  ON public.leads FOR ALL TO public USING (true) WITH CHECK (true);
 
--- Create index for fast searching
+-- Create indexes if not exists
 CREATE INDEX IF NOT EXISTS idx_leads_lead_id ON public.leads(lead_id);
 CREATE INDEX IF NOT EXISTS idx_leads_status ON public.leads(status);
 CREATE INDEX IF NOT EXISTS idx_leads_mobile ON public.leads(mobile);

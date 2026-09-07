@@ -5,12 +5,26 @@ import { createClient } from "@supabase/supabase-js";
 
 const leadsFilePath = path.join(process.cwd(), "data", "leads.json");
 
-// Supabase client instance
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+// Support multiple env var naming conventions (Vercel & standard)
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SUPABASE_URL;
 
-// Local JSON file helpers (failsafe)
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function getSupabaseClient() {
+  if (supabaseUrl && supabaseKey) {
+    return createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false }
+    });
+  }
+  return null;
+}
+
+// Local JSON file helpers (failsafe fallback for local dev)
 function getLocalLeads() {
   try {
     if (!fs.existsSync(leadsFilePath)) return [];
@@ -32,7 +46,7 @@ function saveLocalLeads(leads: any[]) {
   }
 }
 
-// Map Supabase snake_case to frontend camelCase
+// Map Supabase snake_case columns to frontend camelCase properties
 function mapFromSupabase(item: any) {
   return {
     id: item.lead_id || item.id,
@@ -59,6 +73,7 @@ function mapFromSupabase(item: any) {
 
 // READ (GET /api/leads)
 export async function GET() {
+  const supabase = getSupabaseClient();
   const localLeads = getLocalLeads();
 
   if (supabase) {
@@ -68,14 +83,14 @@ export async function GET() {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (!error && data) {
+      if (error) {
+        console.error("Supabase GET error:", error.message, error.details);
+      } else if (data) {
         const sbMapped = data.map(mapFromSupabase);
-        const sbLeadIds = new Set(sbMapped.map((l) => l.id));
-        const combined = [...sbMapped, ...localLeads.filter((l: any) => !sbLeadIds.has(l.id))];
-        return NextResponse.json({ success: true, source: "supabase", count: combined.length, leads: combined });
+        return NextResponse.json({ success: true, source: "supabase", count: sbMapped.length, leads: sbMapped });
       }
     } catch (err) {
-      console.warn("Supabase GET fallback to local:", err);
+      console.error("Supabase GET exception:", err);
     }
   }
 
@@ -106,7 +121,7 @@ export async function POST(request: Request) {
 
     if (!fullName || !mobile || !city) {
       return NextResponse.json(
-        { success: false, error: "Full Name, Mobile Number, and City are required." },
+        { success: false, error: "Full Name, Mobile Number, and City are required fields." },
         { status: 400 }
       );
     }
@@ -135,43 +150,55 @@ export async function POST(request: Request) {
       notes: notes || "Lead created via enquiry platform."
     };
 
-    // 1. Save to local JSON fallback
+    // 1. Save to local JSON (failsafe)
     const localLeads = getLocalLeads();
     localLeads.unshift(leadObject);
     saveLocalLeads(localLeads);
 
-    // 2. Insert into Supabase database
+    // 2. Insert into Supabase
+    const supabase = getSupabaseClient();
+    let supabaseSuccess = false;
+    let supabaseErrorMsg = "";
+
     if (supabase) {
-      try {
-        await supabase.from("leads").insert([
-          {
-            lead_id: newLeadId,
-            full_name: fullName,
-            mobile,
-            whatsapp: whatsapp || mobile,
-            city,
-            loan_type: loanType || "personal-loan",
-            loan_amount: String(loanAmount || "0"),
-            employment_type: employmentType || "Salaried",
-            monthly_income: String(monthlyIncome || "0"),
-            existing_emi: String(existingEmi || "0"),
-            preferred_contact: preferredContact || "Call",
-            message: message || "",
-            source: source || "Website Lead Form",
-            status: status || "NEW",
-            assigned_advisor: assignedAdvisor || "Unassigned",
-            notes: notes || "Lead created via enquiry platform."
-          }
-        ]);
-      } catch (sbErr) {
-        console.warn("Supabase POST error (saved to local):", sbErr);
+      const { data, error } = await supabase.from("leads").insert([
+        {
+          lead_id: newLeadId,
+          full_name: fullName,
+          mobile,
+          whatsapp: whatsapp || mobile,
+          city,
+          loan_type: loanType || "personal-loan",
+          loan_amount: String(loanAmount || "0"),
+          employment_type: employmentType || "Salaried",
+          monthly_income: String(monthlyIncome || "0"),
+          existing_emi: String(existingEmi || "0"),
+          preferred_contact: preferredContact || "Call",
+          message: message || "",
+          source: source || "Website Lead Form",
+          status: status || "NEW",
+          assigned_advisor: assignedAdvisor || "Unassigned",
+          notes: notes || "Lead created via enquiry platform."
+        }
+      ]).select();
+
+      if (error) {
+        console.error("Supabase INSERT error:", error.message, error.details);
+        supabaseErrorMsg = error.message;
+      } else {
+        supabaseSuccess = true;
       }
+    } else {
+      supabaseErrorMsg = "Supabase env variables missing on server";
+      console.warn("Supabase client not initialized: Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
     }
 
     return NextResponse.json({
       success: true,
       leadId: newLeadId,
       lead: leadObject,
+      supabaseSynced: supabaseSuccess,
+      supabaseNotice: supabaseErrorMsg || undefined,
       message: "Lead created successfully."
     });
   } catch (error: any) {
@@ -210,24 +237,24 @@ export async function PATCH(request: Request) {
     }
 
     // 2. Update Supabase
+    const supabase = getSupabaseClient();
     if (supabase) {
-      try {
-        const payload: any = { last_follow_up: new Date().toISOString() };
-        if (fullName) payload.full_name = fullName;
-        if (mobile) payload.mobile = mobile;
-        if (whatsapp) payload.whatsapp = whatsapp;
-        if (city) payload.city = city;
-        if (loanType) payload.loan_type = loanType;
-        if (loanAmount !== undefined) payload.loan_amount = String(loanAmount);
-        if (employmentType) payload.employment_type = employmentType;
-        if (monthlyIncome !== undefined) payload.monthly_income = String(monthlyIncome);
-        if (status) payload.status = status;
-        if (assignedAdvisor !== undefined) payload.assigned_advisor = assignedAdvisor;
-        if (notes !== undefined) payload.notes = notes;
+      const payload: any = { last_follow_up: new Date().toISOString() };
+      if (fullName) payload.full_name = fullName;
+      if (mobile) payload.mobile = mobile;
+      if (whatsapp) payload.whatsapp = whatsapp;
+      if (city) payload.city = city;
+      if (loanType) payload.loan_type = loanType;
+      if (loanAmount !== undefined) payload.loan_amount = String(loanAmount);
+      if (employmentType) payload.employment_type = employmentType;
+      if (monthlyIncome !== undefined) payload.monthly_income = String(monthlyIncome);
+      if (status) payload.status = status;
+      if (assignedAdvisor !== undefined) payload.assigned_advisor = assignedAdvisor;
+      if (notes !== undefined) payload.notes = notes;
 
-        await supabase.from("leads").update(payload).or(`lead_id.eq.${leadId},id.eq.${leadId}`);
-      } catch (sbErr) {
-        console.warn("Supabase PATCH error:", sbErr);
+      const { error } = await supabase.from("leads").update(payload).or(`lead_id.eq.${leadId},id.eq.${leadId}`);
+      if (error) {
+        console.error("Supabase UPDATE error:", error.message);
       }
     }
 
@@ -254,11 +281,11 @@ export async function DELETE(request: Request) {
     saveLocalLeads(localLeads);
 
     // 2. Delete from Supabase
+    const supabase = getSupabaseClient();
     if (supabase) {
-      try {
-        await supabase.from("leads").delete().or(`lead_id.eq.${leadId},id.eq.${leadId}`);
-      } catch (sbErr) {
-        console.warn("Supabase DELETE error:", sbErr);
+      const { error } = await supabase.from("leads").delete().or(`lead_id.eq.${leadId},id.eq.${leadId}`);
+      if (error) {
+        console.error("Supabase DELETE error:", error.message);
       }
     }
 
