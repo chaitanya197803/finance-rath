@@ -1,69 +1,118 @@
-import Image from "next/image";
+import React from "react";
+import { Metadata } from "next";
+import { Navbar } from "../components/Navbar";
+import { Hero } from "../components/Hero";
+import { LoanCalculator } from "../components/LoanCalculator";
+import { LoanProducts } from "../components/LoanProducts";
+import { HowItWorks } from "../components/HowItWorks";
+import { WhyChooseUs } from "../components/WhyChooseUs";
+import { LoanComparisonSection } from "../components/LoanComparisonSection";
+import { LeadCaptureForm } from "../components/LeadCaptureForm";
+import { AboutSection } from "../components/AboutSection";
+import { CustomerReviews } from "../components/CustomerReviews";
+import { FAQAccordion } from "../components/FAQAccordion";
+import { Footer } from "../components/Footer";
+import { StickyMobileBar } from "../components/StickyMobileBar";
+import { AnalyticsPlaceholder } from "../components/AnalyticsPlaceholder";
+import { COMPANY_CONFIG } from "../config/company";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "Finance Rath | Find & Compare Loans across Multiple Banks | Durg & Chhattisgarh",
+  description:
+    "Your Loan. Compared. Simplified. We help you compare suitable personal, business, home, and LAP loan options from multiple lending partners in Durg, Bhilai & Chhattisgarh.",
+  keywords: [
+    "loan consultant",
+    "loan advisor",
+    "personal loan",
+    "business loan",
+    "home loan",
+    "loan against property",
+    "MSME loan",
+    "loan consultant near me",
+    "Durg loan consultant",
+    "Finance Rath"
+  ],
+  openGraph: {
+    title: "Finance Rath - Compare Suitable Loan Options",
+    description: "Tell us what you need. We compare suitable loan options from multiple lending partners and guide you to disbursal.",
+    url: "https://financerath.com",
+    siteName: "Finance Rath",
+    locale: "en_IN",
+    type: "website"
+  }
+};
+
+export default function HomePage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FinancialService",
+    name: COMPANY_CONFIG.name,
+    legalName: COMPANY_CONFIG.legalName,
+    url: `https://${COMPANY_CONFIG.domain}`,
+    logo: `https://${COMPANY_CONFIG.domain}/logo.svg`,
+    description: COMPANY_CONFIG.subheadline,
+    telephone: COMPANY_CONFIG.phone,
+    email: COMPANY_CONFIG.email,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "City Center Mall, Station Road",
+      addressLocality: "Durg",
+      addressRegion: "Chhattisgarh",
+      postalCode: "491001",
+      addressCountry: "IN"
+    },
+    areaServed: COMPANY_CONFIG.cityArea
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-amber-100 selection:text-[#7a1c1c]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <AnalyticsPlaceholder />
+
+      {/* Header & Navigation */}
+      <Navbar />
+
+      {/* Main Content Flow */}
+      <main className="flex-1">
+        {/* 1. Hero Section + Trust Indicators */}
+        <Hero />
+
+        {/* 2. Interactive EMI & Loan Eligibility Estimator */}
+        <LoanCalculator />
+
+        {/* 3. 10 Loan Products Grid */}
+        <LoanProducts />
+
+        {/* 4. 4-Step How It Works Timeline */}
+        <HowItWorks />
+
+        {/* 5. Key Differentiator Comparison Matrix */}
+        <LoanComparisonSection />
+
+        {/* 6. Why Choose Us (6 Benefit Cards) */}
+        <WhyChooseUs />
+
+        {/* 7. Lead Capture Section */}
+        <LeadCaptureForm />
+
+        {/* 8. Corporate About Us */}
+        <AboutSection />
+
+        {/* 9. Testimonials & Client Reviews */}
+        <CustomerReviews />
+
+        {/* 10. 11 FAQ Items Accordion */}
+        <FAQAccordion />
       </main>
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Mobile Sticky Bar */}
+      <StickyMobileBar />
     </div>
   );
 }
